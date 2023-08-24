@@ -1,0 +1,216 @@
+package seachelle.service;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import seachelle.controller.model.SeachelleData;
+import seachelle.controller.model.SeachelleData.SeachelleCustomer;
+import seachelle.controller.model.SeachelleData.SeachelleEmployee;
+import seachelle.dao.SeachelleDao;
+import seachelle.dao.customerDao;
+import seachelle.dao.employeeDao;
+import seachelle.entity.Customer;
+import seachelle.entity.Employee;
+import seachelle.entity.Seachelle;
+
+@Service
+public class SeachelleService {
+    
+	@Autowired
+	private SeachelleDao seachelleDao;
+	
+	
+	@Transactional (readOnly = false)
+	public SeachelleData saveSeachelle(SeachelleData seachelleData) {
+		Long seachelleId = seachelleData.getSeachelleId();
+		Seachelle seachelle = findOrCreateSeachelle(seachelleId);
+		
+		copySeachelleFields(seachelle, seachelleData);
+		return new SeachelleData(seachelleDao.save(seachelle));
+	}
+
+
+	private void copySeachelleFields(Seachelle seachelle,
+			SeachelleData seachelleData) {
+		seachelle.setSeachelleAddress(seachelleData.getSeachelleAddress());
+		seachelle.setSeachelleCity(seachelleData.getSeachelleCity());
+		seachelle.setSeachelleId(seachelleData.getSeachelleId());
+		seachelle.setSeachelleName(seachelleData.getSeachelleName());
+		seachelle.setSeachellePhone(seachelleData.getSeachellePhone());
+		seachelle.setSeachelleState(seachelleData.getSeachelleState());
+		seachelle.setSeachelleZip(seachelleData.getSeachelleZip());
+		
+	}
+
+
+	private Seachelle findOrCreateSeachelle(Long seachelleId) {
+		
+		if(Objects.isNull(seachelleId)) {
+			return new Seachelle();
+		}
+		else {
+			return findSeachelleById(seachelleId);
+		}
+	}
+
+
+	private Seachelle findSeachelleById(Long seachelleId) {
+		return seachelleDao.findById(seachelleId)
+				.orElseThrow(() -> new NoSuchElementException(
+					"Seachelle Store with ID=" + seachelleId + " was not found."));
+	}
+
+
+	
+	private void copyEmployeeFields(Employee employee,
+			SeachelleEmployee seachelleEmployee) {
+		employee.setEmployeeFirstName(seachelleEmployee.getEmployeeFirstName());
+		employee.setEmployeeLastName(seachelleEmployee.getEmployeeLastName());
+		employee.setEmployeeId(seachelleEmployee.getEmployeeId());
+		employee.setEmployeeJobTitle(seachelleEmployee.getEmployeeJobTitle());
+		employee.setEmployeePhone(seachelleEmployee.getEmployeePhone());
+
+		}
+	
+	private void copyCustomerFields(Customer customer,
+			SeachelleCustomer seachelleCustomer) {
+		customer.setCustomerFirstName(seachelleCustomer.getCustomerFirstName());
+		customer.setCustomerLastName(seachelleCustomer.getCustomerLastName());
+	    customer.setCustomerId(seachelleCustomer.getCustomerId());
+		customer.setCustomerEmail(seachelleCustomer.getCustomerEmail());
+	
+
+		}
+	
+	private Employee findOrCreateEmployee(Long seachelleId, Long employeeId) {
+		if(Objects.isNull(employeeId)) {
+			return new Employee();
+		}
+		
+		return findEmployeeById(seachelleId, employeeId);
+	}
+	
+	private Employee findEmployeeById(Long seachelleId, Long employeeId) {
+		Employee employee = employeeDao.findById(employeeId)
+				.orElseThrow(() -> new NoSuchElementException(
+						"Employee with ID=" + employeeId + " was not found."));
+		
+		if(employee.getSeachelle().getSeachelleId() != seachelleId) {
+			throw new IllegalArgumentException("The employee with ID=" + employeeId
+					+ " is not employeed by the seachelle store with ID" + seachelleId + ".");
+		}
+		
+		return employee;
+	}
+
+
+	private Customer findOrCreateCustomer(Long seachelleId, Long customerId) {
+		if(Objects.isNull(customerId)) {
+			return new Customer();
+		}
+		
+		return findCustomerById(seachelleId, customerId);
+	}
+	
+	
+	 
+	
+	private Customer findCustomerById(Long seachelleId, Long customerId) {
+	  Customer customer = customerDao.findById(customerId)
+			  .orElseThrow(() -> new NoSuchElementException(
+					  "Customer with ID=" + customerId + "was not found."));
+	  
+	  boolean found = false;
+	  
+	  for(Seachelle seachelle : customer.getSeachelles()) {
+		  if(seachelle.getSeachelleId() == seachelleId) {
+			  found = true;
+			  break;
+		  }
+	  }
+	  
+	  if(!found) {
+		  throw new IllegalArgumentException("The customer with ID=" + customerId
+				  + " is not a member of the pet store with ID=" + seachelleId);
+	  }
+	  
+	  return customer;
+	}
+
+	
+	
+	
+    @Transactional(readOnly = false)
+	public SeachelleEmployee saveEmployee(Long seachelleId,
+			SeachelleEmployee seachelleEmployee) {
+		Seachelle seachelle = findSeachelleById(seachelleId);
+		Long employeeId = seachelleEmployee.getEmployeeId();
+		Employee employee = findOrCreateEmployee(seachelleId, employeeId);
+		
+		copyEmployeeFields(employee, seachelleEmployee);
+		
+		employee.setSeachelle(seachelle);
+		seachelle.getEmployees().add(employee);
+		
+		Employee dbEmployee = employeeDao.save(employee);
+		
+		
+		return new SeachelleEmployee(dbEmployee);
+	}
+
+    @Transactional
+	public SeachelleCustomer saveCustomer(Long seachelleId,
+			SeachelleCustomer seachelleCustomer) {
+		Seachelle seachelle = findSeachelleById(seachelleId);
+		Long customerId = seachelleCustomer.getCustomerId();
+		Customer customer = findOrCreateCustomer(seachelleId, customerId);
+		
+		copyCustomerFields(customer, seachelleCustomer);
+		
+		customer.getSeachelles().add(seachelle);
+		seachelle.getCustomers().add(customer);
+		
+		Customer dbCustomer = customerDao.save(customer);
+		
+		return new SeachelleCustomer(dbCustomer);
+	}
+
+
+    @Transactional(readOnly = true)
+	public List<SeachelleData> retrieveAllSeachelles() {
+		List<Seachelle> seachelles = seachelleDao.findAll();
+		
+		List<SeachelleData> result = new LinkedList<>();
+		
+		for(Seachelle seachelle: seachelles) {
+			SeachelleData psd = new SeachelleData(seachelle);
+			
+			psd.getCustomers().clear();
+			psd.getEmployees().clear();
+			
+			result.add(psd);
+		}
+		return result;
+	}
+
+    
+    @Transactional(readOnly = true)
+	public SeachelleData retrieveSeachelleById(Long seachelleId) {
+		
+		return new SeachelleData(findSeachelleById(seachelleId));
+	}
+
+    @Transactional(readOnly = false)
+	public void deleteSeachelleById(Long seachelleId) {
+		Seachelle seachelle = findSeachelleById(seachelleId);
+		seachelleDao.delete(seachelle);
+		
+	}
+	
+}

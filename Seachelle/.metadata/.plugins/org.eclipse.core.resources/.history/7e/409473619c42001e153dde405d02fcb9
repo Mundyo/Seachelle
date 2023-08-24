@@ -1,0 +1,9 @@
+package seachelle.dao;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import seachelle.entity.Customer;
+
+public interface customerDao extends JpaRepository<Customer, Long> {
+
+}

@@ -1,0 +1,5 @@
+package seachelle.controller.model;
+
+public class SeachelleData {
+
+}

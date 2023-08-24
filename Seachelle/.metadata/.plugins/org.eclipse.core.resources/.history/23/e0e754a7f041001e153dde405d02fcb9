@@ -1,0 +1,5 @@
+package seachelle.entity;
+
+public class Employee {
+
+}

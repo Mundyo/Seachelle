@@ -1,0 +1,61 @@
+package seachelle.service;
+
+import java.util.NoSuchElementException;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import org.springframework.transaction.annotation.Transactional;
+import seachelle.controller.model.SeachelleData;
+import seachelle.dao.SeachelleDao;
+import seachelle.entity.Seachelle;
+
+@Service
+public class SeachelleService {
+    
+	@Autowired
+	private SeachelleDao seachelleDao;
+	
+	
+	@Transactional (readOnly = false)
+	public SeachelleData saveSeachelle(SeachelleData seachelleData) {
+		Long seachelleId = seachelleData.getSeachelleId();
+		Seachelle seachelle = findOrCreateSeachelle(seachelleId);
+		
+		copySeachelleFields(seachelle, seachelleData);
+		return new SeachelleData(seachelleDao.save(seachelle));
+	}
+
+
+	private void copySeachelleFields(Seachelle seachelle,
+			SeachelleData seachelleData) {
+		seachelle.setSeachelleAddress(seachelleData.getSeachelleAddress());
+		seachelle.setSeachelleCity(seachelleData.getSeachelleCity());
+		seachelle.setSeachelleId(seachelleData.getSeachelleId());
+		seachelle.setSeachelleName(seachelleData.getSeachelleName());
+		seachelle.setSeachellePhone(seachelleData.getSeachellePhone());
+		seachelle.setSeachelleState(seachelleData.getSeachelleState());
+		seachelle.setSeachelleZip(seachelleData.getSeachelleZip());
+		
+	}
+
+
+	private Seachelle findOrCreateSeachelle(Long seachelleId) {
+		
+		if(Objects.isNull(seachelleId)) {
+			return new Seachelle();
+		}
+		else {
+			return findSeachelleById(seachelleId);
+		}
+	}
+
+
+	private Seachelle findSeachelleById(Long seachelleId) {
+		return seachelleDao.findById(seachelleId)
+				.orElseThrow(() -> new NoSuchElementException(
+					"Seachelle Store with ID=" + seachelleId + " was not found."));
+	}
+	
+}

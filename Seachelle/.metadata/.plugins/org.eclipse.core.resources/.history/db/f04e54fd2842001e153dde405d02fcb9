@@ -1,0 +1,43 @@
+package seachelle.controller.model;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import seachelle.entity.Seachelle;
+
+@Data
+@NoArgsConstructor
+public class SeachelleData {
+	private Long seachelleId;
+	private String seachelleName;
+	private String seachelleAddress;
+	private String seachelleCity;
+	private String seachelleState;
+	private String seachelleZip;
+	private String seachellePhone; 
+	
+	private Set<SeachelleCustomer> customers = new HashSet<>();
+	private Set<SeachelleEmployee> employees = new HashSet<>();
+	
+	
+	public SeachelleData(Seachelle seachelle) {
+		seachelleId = seachelle.getSeachelleId();
+		seachelleName = seachelle.getSeachelleName();
+		seachelleAddress = seachelle.getSeachelleAddress();
+		seachelleCity = seachelle.getSeachelleCity();
+		seachelleState = seachelle.getSeachelleState();
+		seachelleZip = seachelle.getSeachelleZip();
+		seachellePhone = seachelle.getSeachellePhone();
+		
+		for(Customer customer : seachelle.getCustomers()) {
+		  customers.add(new SeachelleCustomer(customer));	
+		}
+		
+		for(Employee employee: seachelle.getEmployees()) {
+			employees.add(new SeachelleEmployee(employee));
+		}
+	}
+
+}

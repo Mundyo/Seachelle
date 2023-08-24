@@ -1,0 +1,12 @@
+spring: 
+   datasource:
+     username: seachelle
+     password: seachelle
+     url: jdbc:mysql://localhost:3306/seachelle
+     
+   
+   jpa:
+     hibernate:
+       ddl-auto: update
+     show-sql:  true
+     defer-datasource-initialization: true
